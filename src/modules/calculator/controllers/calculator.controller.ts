@@ -1,0 +1,66 @@
+import { Controller, Get, Post, Body, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Public } from '@common/decorators';
+import { CalculatorService } from '../services';
+import { SearchLocalidadesDto, CotizarDto, LocalidadesResponseDto, CotizacionResponseDto } from '../dto';
+
+@ApiTags('Calculator')
+@Controller('calculator')
+export class CalculatorController {
+  constructor(private readonly calculatorService: CalculatorService) {}
+
+  @Public()
+  @Get('localidades')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Buscar localidades',
+    description: 'Busca localidades disponibles para envíos. Endpoint público que oculta el origen de la petición.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de localidades encontradas',
+    type: LocalidadesResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Parámetros inválidos',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al comunicarse con la API externa',
+  })
+  async searchLocalidades(@Query() query: SearchLocalidadesDto): Promise<LocalidadesResponseDto> {
+    return this.calculatorService.searchLocalidades(query.q, query.atendida);
+  }
+
+  @Public()
+  @Post('cotizar')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Cotizar envío',
+    description: 'Obtiene una cotización de envío con diferentes opciones de servicio. Endpoint público que oculta el origen de la petición.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Cotización exitosa',
+    type: CotizacionResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos de cotización inválidos',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al comunicarse con la API externa',
+  })
+  async cotizar(@Body() dto: CotizarDto): Promise<CotizacionResponseDto> {
+    return this.calculatorService.cotizar({
+      acuerdos_id: dto.acuerdos_id ?? 0,
+      articulos_id: dto.articulos_id ?? 0,
+      opostal: dto.opostal,
+      dpostal: dto.dpostal,
+      bultos: dto.bultos,
+    });
+  }
+}
+
