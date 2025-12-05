@@ -5,10 +5,20 @@ import { firstValueFrom, catchError } from 'rxjs';
 import { AxiosError } from 'axios';
 import { CalculatorAuthService } from './calculator-auth.service';
 
+interface CotizacionItem {
+  id: number;
+  descripcion: string;
+  precio: number;
+  precio_final: number;
+  flete: number;
+  seguro: number;
+}
+
 @Injectable()
 export class CalculatorService {
   private readonly logger = new Logger(CalculatorService.name);
   private readonly apiUrl: string;
+  private readonly priceReductionPercentage: number;
 
   constructor(
     private readonly httpService: HttpService,
@@ -16,6 +26,7 @@ export class CalculatorService {
     private readonly authService: CalculatorAuthService,
   ) {
     this.apiUrl = this.configService.get<string>('calculator.apiUrl') || 'https://api.credifin.com.ar';
+    this.priceReductionPercentage = this.configService.get<number>('calculator.priceReduction') || 0;
   }
 
   /**
@@ -33,7 +44,7 @@ export class CalculatorService {
   }
 
   /**
-   * Obtiene cotización
+   * Obtiene cotización con reducción de precios aplicada
    */
   async cotizar(payload: {
     acuerdos_id: number;
@@ -50,7 +61,31 @@ export class CalculatorService {
     }>;
   }): Promise<any> {
     const url = `${this.apiUrl}/api/cotizar`;
-    return this.makeRequest('POST', url, payload);
+    const result = await this.makeRequest('POST', url, payload);
+
+    // Aplicar reducción de precios si está configurada
+    if (this.priceReductionPercentage > 0 && result?.cotizacion_web) {
+      return {
+        ...result,
+        cotizacion_web: this.applyPriceReduction(result.cotizacion_web),
+      };
+    }
+
+    return result;
+  }
+
+  /**
+   * Aplica reducción de porcentaje a flete, precio y precio_final
+   */
+  private applyPriceReduction(cotizaciones: CotizacionItem[]): CotizacionItem[] {
+    const reductionMultiplier = 1 - (this.priceReductionPercentage / 100);
+
+    return cotizaciones.map(cotizacion => ({
+      ...cotizacion,
+      flete: Math.round(cotizacion.flete * reductionMultiplier * 100) / 100,
+      precio: Math.round(cotizacion.precio * reductionMultiplier * 100) / 100,
+      precio_final: Math.round(cotizacion.precio_final * reductionMultiplier * 100) / 100,
+    }));
   }
 
   /**

@@ -40,3 +40,142 @@ model User {
   @@map("users")
 }
 
+// ==================== VOUCHER SYSTEM ====================
+
+model Client {
+  id               String     @id @default(uuid())
+  fullname         String
+  phone            String
+  email            String     @unique
+  cuit             String?
+  address          String
+  quantityVouchers Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  deletedAt        DateTime?
+  preorders        Preorder[]
+
+  @@map("clients")
+}
+
+enum PackageTypeEnum {
+  BULTO
+  BAG_20X32
+  BAG_30X41
+  BAG_42X54
+  BAG_70X80
+}
+
+model PackageType {
+  id               String          @id @default(uuid())
+  name             String          @unique
+  type             PackageTypeEnum @unique
+  height           Float           // cm
+  width            Float           // cm
+  depth            Float           // cm
+  weight           Float           // kg (peso base/máximo)
+  imageUrl         String?
+  isCustom         Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  preorderPackages PreorderPackage[]
+
+  @@map("package_types")
+}
+
+enum PreorderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Preorder {
+  id              String              @id @default(uuid())
+  voucherNumber   String              @unique
+  clientId        String
+  client          Client              @relation(fields: [clientId], references: [id])
+  origin          String
+  originPostal    String
+  destination     String
+  destinationPostal String
+  price           Float
+  status          PreorderStatus      @default(PENDING)
+  notes           String?
+  pdfUrl          String?
+  packages        PreorderPackage[]
+  containers      ContainerPreorder[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  deletedAt       DateTime?
+
+  @@map("preorders")
+}
+
+model PreorderPackage {
+  id            String      @id @default(uuid())
+  preorderId    String
+  preorder      Preorder    @relation(fields: [preorderId], references: [id], onDelete: Cascade)
+  packageTypeId String
+  packageType   PackageType @relation(fields: [packageTypeId], references: [id])
+  quantity      Int
+  weight        Float       // kg (peso real del envío)
+  height        Float?      // cm (solo para BULTO personalizado)
+  width         Float?      // cm (solo para BULTO personalizado)
+  depth         Float?      // cm (solo para BULTO personalizado)
+  declaredValue Float       @default(0)
+  createdAt     DateTime    @default(now())
+
+  @@map("preorder_packages")
+}
+
+// ==================== LOGISTICS SYSTEM ====================
+
+model Transport {
+  id           String      @id @default(uuid())
+  name         String
+  licensePlate String      @unique
+  available    Boolean     @default(true)
+  containers   Container[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+
+  @@map("transports")
+}
+
+enum ContainerStatus {
+  ON_LOAD
+  TRAVELLING
+  ARRIVED
+}
+
+model Container {
+  id          String          @id @default(uuid())
+  code        String          @unique
+  transportId String?
+  transport   Transport?      @relation(fields: [transportId], references: [id])
+  status      ContainerStatus @default(ON_LOAD)
+  origin      String
+  destination String
+  notes       String?
+  preorders   ContainerPreorder[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?
+
+  @@map("containers")
+}
+
+model ContainerPreorder {
+  id          String   @id @default(uuid())
+  containerId String
+  container   Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  preorderId  String
+  preorder    Preorder  @relation(fields: [preorderId], references: [id])
+  addedAt     DateTime  @default(now())
+
+  @@unique([containerId, preorderId])
+  @@map("container_preorders")
+}
+

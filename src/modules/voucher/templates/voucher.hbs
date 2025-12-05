@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voucher #{{voucherNumber}}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-burgundy: #A01744;
+      --primary-gray: #6B6B6B;
+      --dark-gray: #333333;
+      --light-gray: #F5F5F5;
+      --black: #000000;
+      --white: #FFFFFF;
+      --border-color: #E0E0E0;
+    }
+
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--dark-gray);
+      background: var(--white);
+    }
+
+    .voucher-container {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 15mm;
+      margin: 0 auto;
+      background: var(--white);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 15px;
+      border-bottom: 3px solid var(--primary-burgundy);
+      margin-bottom: 20px;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      width: 100px;
+      height: auto;
+    }
+
+    .company-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .company-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-burgundy);
+      letter-spacing: 1px;
+    }
+
+    .company-subtitle {
+      font-size: 11px;
+      color: var(--primary-gray);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .voucher-info {
+      text-align: right;
+    }
+
+    .voucher-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-burgundy);
+      margin-bottom: 5px;
+    }
+
+    .voucher-number {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--dark-gray);
+      background: var(--light-gray);
+      padding: 5px 15px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .voucher-date {
+      font-size: 11px;
+      color: var(--primary-gray);
+      margin-top: 8px;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      background: linear-gradient(135deg, var(--primary-burgundy) 0%, #7a1234 100%);
+      padding: 8px 15px;
+      border-radius: 4px 4px 0 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .section-content {
+      background: var(--light-gray);
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+    }
+
+    /* Grid Layout */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+    }
+
+    /* Info Row */
+    .info-row {
+      margin-bottom: 8px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--primary-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .info-value {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dark-gray);
+    }
+
+    /* Origin/Destination Box */
+    .location-box {
+      background: var(--white);
+      padding: 12px;
+      border-radius: 4px;
+      border-left: 4px solid var(--primary-burgundy);
+    }
+
+    .location-box.destination {
+      border-left-color: var(--primary-gray);
+    }
+
+    .location-type {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary-burgundy);
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .location-type.destination {
+      color: var(--primary-gray);
+    }
+
+    .location-address {
+      font-size: 12px;
+      color: var(--dark-gray);
+      margin-bottom: 3px;
+    }
+
+    .location-postal {
+      font-size: 11px;
+      color: var(--primary-gray);
+    }
+
+    /* Arrow between locations */
+    .route-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+    }
+
+    .arrow-icon {
+      font-size: 24px;
+      color: var(--primary-burgundy);
+    }
+
+    /* Packages Table */
+    .packages-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .packages-table th {
+      background: var(--primary-burgundy);
+      color: var(--white);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 8px;
+      text-align: left;
+    }
+
+    .packages-table th:first-child {
+      border-radius: 4px 0 0 0;
+    }
+
+    .packages-table th:last-child {
+      border-radius: 0 4px 0 0;
+      text-align: right;
+    }
+
+    .packages-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 11px;
+    }
+
+    .packages-table tr:nth-child(even) {
+      background: var(--light-gray);
+    }
+
+    .packages-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .packages-table td:last-child {
+      text-align: right;
+    }
+
+    .package-name {
+      font-weight: 500;
+      color: var(--dark-gray);
+    }
+
+    .package-dimensions {
+      font-size: 10px;
+      color: var(--primary-gray);
+    }
+
+    /* Totals Section */
+    .totals-section {
+      background: var(--white);
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .total-row:last-child {
+      border-bottom: none;
+      padding-top: 12px;
+      margin-top: 5px;
+      border-top: 2px solid var(--primary-burgundy);
+    }
+
+    .total-label {
+      font-size: 12px;
+      color: var(--primary-gray);
+    }
+
+    .total-value {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--dark-gray);
+    }
+
+    .total-row:last-child .total-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--dark-gray);
+    }
+
+    .total-row:last-child .total-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-burgundy);
+    }
+
+    /* Notes Section */
+    .notes-content {
+      background: var(--white);
+      padding: 12px;
+      border-radius: 4px;
+      font-style: italic;
+      color: var(--primary-gray);
+      min-height: 40px;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 2px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .footer-info {
+      font-size: 10px;
+      color: var(--primary-gray);
+    }
+
+    .footer-info p {
+      margin-bottom: 3px;
+    }
+
+    .signature-section {
+      display: flex;
+      gap: 40px;
+    }
+
+    .signature-box {
+      text-align: center;
+    }
+
+    .signature-line {
+      width: 120px;
+      height: 1px;
+      background: var(--dark-gray);
+      margin-bottom: 5px;
+    }
+
+    .signature-label {
+      font-size: 10px;
+      color: var(--primary-gray);
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-pending {
+      background: #FFF3CD;
+      color: #856404;
+    }
+
+    .status-confirmed {
+      background: #D4EDDA;
+      color: #155724;
+    }
+
+    .status-cancelled {
+      background: #F8D7DA;
+      color: #721C24;
+    }
+
+    .status-completed {
+      background: #CCE5FF;
+      color: #004085;
+    }
+
+    /* QR Code placeholder */
+    .qr-section {
+      text-align: center;
+      padding: 10px;
+    }
+
+    .qr-code {
+      width: 80px;
+      height: 80px;
+      background: var(--light-gray);
+      border: 1px dashed var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 5px;
+      font-size: 9px;
+      color: var(--primary-gray);
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      .voucher-container {
+        padding: 10mm;
+      }
+    }
+
+    /* Icon replacement with text */
+    .icon-origin::before { content: "📍 "; }
+    .icon-destination::before { content: "🎯 "; }
+  </style>
+</head>
+<body>
+  <div class="voucher-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-section">
+        {{#if logoBase64}}
+        <img src="data:image/png;base64,{{logoBase64}}" alt="Logo" class="logo">
+        {{/if}}
+        <div class="company-info">
+          <div class="company-name">TRANSPORTE GIOIA E HIJOS SRL</div>
+          <div class="company-subtitle">Servicios de Logística y Courier</div>
+        </div>
+      </div>
+      <div class="voucher-info">
+        <div class="voucher-title">VOUCHER</div>
+        <div class="voucher-number">#{{voucherNumber}}</div>
+        <div class="voucher-date">{{date}}</div>
+        <div style="margin-top: 8px;">
+          <span class="status-badge status-{{statusClass}}">{{status}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Information -->
+    <div class="section">
+      <div class="section-title">Información del Cliente</div>
+      <div class="section-content">
+        <div class="grid-3">
+          <div class="info-row">
+            <div class="info-label">Nombre Completo</div>
+            <div class="info-value">{{client.fullname}}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Teléfono</div>
+            <div class="info-value">{{client.phone}}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Email</div>
+            <div class="info-value">{{client.email}}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">CUIT</div>
+            <div class="info-value">{{#if client.cuit}}{{client.cuit}}{{else}}-{{/if}}</div>
+          </div>
+          <div class="info-row" style="grid-column: span 2;">
+            <div class="info-label">Dirección</div>
+            <div class="info-value">{{client.address}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Route Information -->
+    <div class="section">
+      <div class="section-title">Información de Envío</div>
+      <div class="section-content">
+        <div style="display: flex; align-items: stretch; gap: 15px;">
+          <div class="location-box" style="flex: 1;">
+            <div class="location-type">
+              <span class="icon-origin"></span>Origen
+            </div>
+            <div class="location-address">{{origin}}</div>
+            <div class="location-postal">CP: {{originPostal}}</div>
+          </div>
+          <div class="route-arrow">
+            <span class="arrow-icon">➜</span>
+          </div>
+          <div class="location-box destination" style="flex: 1;">
+            <div class="location-type destination">
+              <span class="icon-destination"></span>Destino
+            </div>
+            <div class="location-address">{{destination}}</div>
+            <div class="location-postal">CP: {{destinationPostal}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Packages -->
+    <div class="section">
+      <div class="section-title">Detalle de Paquetes</div>
+      <div class="section-content" style="padding: 0;">
+        <table class="packages-table">
+          <thead>
+            <tr>
+              <th style="width: 30%;">Tipo</th>
+              <th style="width: 25%;">Dimensiones</th>
+              <th style="width: 15%;">Cantidad</th>
+              <th style="width: 15%;">Peso</th>
+              <th style="width: 15%;">Valor Decl.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each packages}}
+            <tr>
+              <td>
+                <div class="package-name">{{this.name}}</div>
+              </td>
+              <td>
+                <div class="package-dimensions">
+                  {{#if this.isCustom}}
+                  {{this.height}} × {{this.width}} × {{this.depth}} cm
+                  {{else}}
+                  Estándar
+                  {{/if}}
+                </div>
+              </td>
+              <td>{{this.quantity}}</td>
+              <td>{{this.weight}} kg</td>
+              <td>${{this.declaredValue}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+
+        <div class="totals-section">
+          <div class="total-row">
+            <span class="total-label">Total Paquetes</span>
+            <span class="total-value">{{totalPackages}} unidad(es)</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">Peso Total</span>
+            <span class="total-value">{{totalWeight}} kg</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">Valor Declarado Total</span>
+            <span class="total-value">${{totalDeclaredValue}}</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">PRECIO TOTAL</span>
+            <span class="total-value">${{price}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{#if notes}}
+    <!-- Notes -->
+    <div class="section">
+      <div class="section-title">Notas / Observaciones</div>
+      <div class="section-content">
+        <div class="notes-content">{{notes}}</div>
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-info">
+        <p><strong>Transporte Gioia e Hijos SRL</strong></p>
+        <p>Este documento es válido como comprobante de preorden.</p>
+        <p>Generado el {{generatedAt}}</p>
+      </div>
+      <div class="signature-section">
+        <div class="signature-box">
+          <div class="signature-line"></div>
+          <div class="signature-label">Firma Emisor</div>
+        </div>
+        <div class="signature-box">
+          <div class="signature-line"></div>
+          <div class="signature-label">Firma Receptor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

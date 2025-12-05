@@ -19,6 +19,7 @@ async function main() {
 
   console.log('🌱 Iniciando seed...');
 
+  // ==================== ADMIN USERS ====================
   const adminUsers = [
     {
       email: 'admin@example.com',
@@ -57,6 +58,77 @@ async function main() {
     });
 
     console.log(`✅ Usuario ${adminUser.email} creado con rol ${adminUser.role}`);
+  }
+
+  // ==================== PACKAGE TYPES ====================
+  const packageTypes = [
+    {
+      name: 'Bulto',
+      type: 'BULTO' as const,
+      height: 0,
+      width: 0,
+      depth: 0,
+      weight: 0,
+      imageUrl: '/public/packages/bulto.png',
+      isCustom: true,
+    },
+    {
+      name: 'Bolsa 20x32',
+      type: 'BAG_20X32' as const,
+      height: 32,
+      width: 20,
+      depth: 10,
+      weight: 2,
+      imageUrl: '/public/packages/bag-20x32.png',
+      isCustom: false,
+    },
+    {
+      name: 'Bolsa 30x41',
+      type: 'BAG_30X41' as const,
+      height: 41,
+      width: 30,
+      depth: 15,
+      weight: 5,
+      imageUrl: '/public/packages/bag-30x41.png',
+      isCustom: false,
+    },
+    {
+      name: 'Bolsa 42x54',
+      type: 'BAG_42X54' as const,
+      height: 54,
+      width: 42,
+      depth: 20,
+      weight: 10,
+      imageUrl: '/public/packages/bag-42x54.png',
+      isCustom: false,
+    },
+    {
+      name: 'Bolsa 70x80',
+      type: 'BAG_70X80' as const,
+      height: 80,
+      width: 70,
+      depth: 30,
+      weight: 20,
+      imageUrl: '/public/packages/bag-70x80.png',
+      isCustom: false,
+    },
+  ];
+
+  for (const pkgType of packageTypes) {
+    const existing = await prisma.packageType.findUnique({
+      where: { type: pkgType.type },
+    });
+
+    if (existing) {
+      console.log(`⚠️  Tipo de paquete ${pkgType.name} ya existe, actualizando...`);
+      await prisma.packageType.update({
+        where: { type: pkgType.type },
+        data: pkgType,
+      });
+    } else {
+      await prisma.packageType.create({ data: pkgType });
+      console.log(`✅ Tipo de paquete ${pkgType.name} creado`);
+    }
   }
 
   console.log('✨ Seed completado!');

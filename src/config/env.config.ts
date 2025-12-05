@@ -24,6 +24,11 @@ export interface EnvConfig {
   calculator: {
     authUrl: string;
     apiUrl: string;
+    priceReduction: number;
+  };
+  afip: {
+    production: boolean;
+    apiUrl: string;
   };
 }
 
@@ -53,6 +58,11 @@ export default (): EnvConfig => ({
   calculator: {
     authUrl: process.env.CALCULATOR_AUTH_URL || 'https://auth.credifin.com.ar/v1/token',
     apiUrl: process.env.CALCULATOR_API_URL || 'https://api.credifin.com.ar',
+    priceReduction: parseFloat(process.env.CALCULATOR_PRICE_REDUCTION || '0'),
+  },
+  afip: {
+    production: process.env.AFIP_PRODUCTION === 'true',
+    apiUrl: process.env.AFIP_API_URL || 'https://api.afip.gob.ar',
   },
 });
 
