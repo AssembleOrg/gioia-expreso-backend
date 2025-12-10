@@ -20,6 +20,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { Public } from '@common/decorators';
 import { PreorderService, ClientService } from '../services';
 import {
   CreatePreorderDto,
@@ -42,7 +43,8 @@ export class VoucherController {
   @Post('preorders')
   @ApiOperation({
     summary: 'Crear una nueva preorden',
-    description: 'Crea una preorden con datos del cliente, origen, destino y paquetes. Genera automáticamente un PDF de voucher.',
+    description:
+      'Crea una preorden con datos del cliente, origen, destino y paquetes. Genera automáticamente un PDF de voucher.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -56,14 +58,17 @@ export class VoucherController {
         originPostal: '1033',
         destination: 'Av. San Martín 500, Córdoba',
         destinationPostal: '5000',
-        price: 15000.50,
+        price: 15000.5,
         status: 'PENDING',
         pdfUrl: '/public/vouchers/VCH-M8X5K2-ABCD.pdf',
         createdAt: '2025-01-15T10:30:00.000Z',
       },
     },
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Datos inválidos' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Datos inválidos',
+  })
   async createPreorder(@Body() createPreorderDto: CreatePreorderDto) {
     return this.preorderService.create(createPreorderDto);
   }
@@ -71,7 +76,8 @@ export class VoucherController {
   @Get('preorders')
   @ApiOperation({
     summary: 'Listar preórdenes',
-    description: 'Obtiene una lista paginada de preórdenes con opción de filtrar por estado',
+    description:
+      'Obtiene una lista paginada de preórdenes con opción de filtrar por estado',
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
@@ -92,26 +98,40 @@ export class VoucherController {
     return this.preorderService.findAll(+page, +limit, status);
   }
 
+  @Public()
   @Get('preorders/:id')
   @ApiOperation({
     summary: 'Obtener una preorden por ID',
-    description: 'Obtiene los detalles completos de una preorden incluyendo cliente y paquetes',
+    description:
+      'Obtiene los detalles completos de una preorden incluyendo cliente y paquetes. Este endpoint es público para permitir el tracking de envíos.',
   })
   @ApiParam({ name: 'id', description: 'ID de la preorden (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Preorden encontrada' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Preorden no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
   async findOnePreorder(@Param('id', ParseUUIDPipe) id: string) {
     return this.preorderService.findOne(id);
   }
 
+  @Public()
   @Get('preorders/voucher/:voucherNumber')
   @ApiOperation({
     summary: 'Buscar preorden por número de voucher',
-    description: 'Obtiene una preorden usando su número de voucher único',
+    description:
+      'Obtiene una preorden usando su número de voucher único. Este endpoint es público para permitir el tracking de envíos.',
   })
-  @ApiParam({ name: 'voucherNumber', description: 'Número de voucher', example: 'VCH-M8X5K2-ABCD' })
+  @ApiParam({
+    name: 'voucherNumber',
+    description: 'Número de voucher',
+    example: 'VCH-M8X5K2-ABCD',
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'Preorden encontrada' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Preorden no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
   async findByVoucherNumber(@Param('voucherNumber') voucherNumber: string) {
     return this.preorderService.findByVoucherNumber(voucherNumber);
   }
@@ -119,11 +139,15 @@ export class VoucherController {
   @Put('preorders/:id')
   @ApiOperation({
     summary: 'Actualizar una preorden',
-    description: 'Actualiza los datos de una preorden existente. Si se actualizan paquetes, regenera el PDF.',
+    description:
+      'Actualiza los datos de una preorden existente. Si se actualizan paquetes, regenera el PDF.',
   })
   @ApiParam({ name: 'id', description: 'ID de la preorden (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Preorden actualizada' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Preorden no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
   async updatePreorder(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updatePreorderDto: UpdatePreorderDto,
@@ -138,7 +162,10 @@ export class VoucherController {
   })
   @ApiParam({ name: 'id', description: 'ID de la preorden (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Preorden eliminada' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Preorden no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
   async removePreorder(@Param('id', ParseUUIDPipe) id: string) {
     return this.preorderService.remove(id);
   }
@@ -163,8 +190,14 @@ export class VoucherController {
       },
     },
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Preorden no encontrada' })
-  async downloadPdf(@Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
+  async downloadPdf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() res: Response,
+  ) {
     const preorder = await this.preorderService.findOne(id);
     const pdfBuffer = await this.preorderService.downloadPdf(id);
 
@@ -184,7 +217,10 @@ export class VoucherController {
   })
   @ApiParam({ name: 'id', description: 'ID de la preorden (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'PDF regenerado' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Preorden no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
   async regeneratePdf(@Param('id', ParseUUIDPipe) id: string) {
     return this.preorderService.regeneratePdf(id);
   }
@@ -194,7 +230,8 @@ export class VoucherController {
   @Get('package-types')
   @ApiOperation({
     summary: 'Obtener tipos de paquetes',
-    description: 'Lista todos los tipos de paquetes disponibles (Bulto, Bolsas 20x32, 30x41, 42x54, 70x80)',
+    description:
+      'Lista todos los tipos de paquetes disponibles (Bulto, Bolsas 20x32, 30x41, 42x54, 70x80)',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -258,11 +295,15 @@ export class VoucherController {
   @Get('clients/:id')
   @ApiOperation({
     summary: 'Obtener un cliente por ID',
-    description: 'Obtiene los detalles de un cliente incluyendo sus preórdenes recientes',
+    description:
+      'Obtiene los detalles de un cliente incluyendo sus preórdenes recientes',
   })
   @ApiParam({ name: 'id', description: 'ID del cliente (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Cliente encontrado' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Cliente no encontrado' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Cliente no encontrado',
+  })
   async findOneClient(@Param('id', ParseUUIDPipe) id: string) {
     return this.clientService.findOne(id);
   }
@@ -274,7 +315,10 @@ export class VoucherController {
   })
   @ApiParam({ name: 'id', description: 'ID del cliente (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Cliente actualizado' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Cliente no encontrado' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Cliente no encontrado',
+  })
   async updateClient(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateClientDto: UpdateClientDto,
@@ -289,9 +333,11 @@ export class VoucherController {
   })
   @ApiParam({ name: 'id', description: 'ID del cliente (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Cliente eliminado' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Cliente no encontrado' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Cliente no encontrado',
+  })
   async removeClient(@Param('id', ParseUUIDPipe) id: string) {
     return this.clientService.remove(id);
   }
 }
-
