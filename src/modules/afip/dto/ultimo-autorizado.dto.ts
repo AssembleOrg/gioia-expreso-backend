@@ -22,3 +22,4 @@ export class UltimoAutorizadoDto extends AfipCredentialsDto {
   tipoComprobante: number;
 }
 
+

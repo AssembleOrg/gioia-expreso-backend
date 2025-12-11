@@ -12,3 +12,4 @@ export class ConsultarContribuyenteDto extends AfipCredentialsDto {
   cuitConsultar: string;
 }
 
+

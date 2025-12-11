@@ -36,3 +36,4 @@ export class GenerateQrDto {
   jsonData?: Record<string, any>;
 }
 
+

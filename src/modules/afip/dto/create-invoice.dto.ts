@@ -268,3 +268,4 @@ export class CreateInvoiceDto extends AfipCredentialsDto {
   importeTributos?: number = 0;
 }
 
+

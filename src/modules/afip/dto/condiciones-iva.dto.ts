@@ -16,3 +16,4 @@ export class CondicionesIvaDto extends AfipCredentialsDto {
   claseComprobante?: string;
 }
 
+
