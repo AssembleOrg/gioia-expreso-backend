@@ -191,12 +191,20 @@ export class PreorderService {
     return translations[status] || status;
   }
 
-  async findAll(page = 1, limit = 10, status?: string) {
+  async findAll(page = 1, limit = 10, status?: string, search?: string) {
     const skip = (page - 1) * limit;
 
     const where: any = { deletedAt: null };
     if (status) {
       where.status = status;
+    }
+
+    // Búsqueda parcial por número de voucher
+    if (search) {
+      where.voucherNumber = {
+        contains: search,
+        mode: 'insensitive',
+      };
     }
 
     const [preorders, total] = await Promise.all([

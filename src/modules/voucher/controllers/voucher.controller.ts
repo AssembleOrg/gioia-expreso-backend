@@ -77,7 +77,7 @@ export class VoucherController {
   @ApiOperation({
     summary: 'Listar preórdenes',
     description:
-      'Obtiene una lista paginada de preórdenes con opción de filtrar por estado',
+      'Obtiene una lista paginada de preórdenes con opción de filtrar por estado y buscar por número de voucher',
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
@@ -85,6 +85,13 @@ export class VoucherController {
     name: 'status',
     required: false,
     enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'],
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Buscar por número de voucher (búsqueda parcial)',
+    example: 'VCH-M8X',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -94,8 +101,9 @@ export class VoucherController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
     @Query('status') status?: string,
+    @Query('search') search?: string,
   ) {
-    return this.preorderService.findAll(+page, +limit, status);
+    return this.preorderService.findAll(+page, +limit, status, search);
   }
 
   @Public()
