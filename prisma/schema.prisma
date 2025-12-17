@@ -84,6 +84,7 @@ model PackageType {
 }
 
 enum PreorderStatus {
+  CREATED
   PENDING
   CONFIRMED
   CANCELLED

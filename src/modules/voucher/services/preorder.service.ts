@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '@prisma';
-import { CreatePreorderDto, UpdatePreorderDto, PackageTypeEnum } from '../dto';
+import { $Enums } from '@prisma/client';
+import { CreatePreorderDto, UpdatePreorderDto, PackageTypeEnum, BulkUpdatePreorderDto } from '../dto';
 import { ClientService } from './client.service';
 import { PdfService } from './pdf.service';
 import { DateTime } from 'luxon';
@@ -23,6 +24,7 @@ export class PreorderService {
 
   private getStatusClass(status: string): string {
     const statusMap: Record<string, string> = {
+      CREATED: 'created',
       PENDING: 'pending',
       CONFIRMED: 'confirmed',
       CANCELLED: 'cancelled',
@@ -38,7 +40,7 @@ export class PreorderService {
     }).format(value);
   }
 
-  async create(createPreorderDto: CreatePreorderDto) {
+  async create(createPreorderDto: CreatePreorderDto, userRole?: string) {
     // Validate that either clientId or clientData is provided
     if (!createPreorderDto.clientId && !createPreorderDto.clientData) {
       throw new BadRequestException('Debe proporcionar clientId o clientData');
@@ -89,6 +91,9 @@ export class PreorderService {
     // Generate voucher number
     const voucherNumber = this.generateVoucherNumber();
 
+    // Determine status: CREATED for USER role, PENDING for ADMIN/SUBADMIN
+    const status = userRole === 'USER' ? $Enums.PreorderStatus.CREATED : $Enums.PreorderStatus.PENDING;
+
     // Create preorder with packages
     const preorder = await this.prisma.preorder.create({
       data: {
@@ -100,6 +105,7 @@ export class PreorderService {
         destinationPostal: createPreorderDto.destinationPostal,
         price: createPreorderDto.price,
         notes: createPreorderDto.notes,
+        status,
         packages: {
           create: createPreorderDto.packages.map(pkg => {
             const pkgType = packageTypeMap.get(pkg.packageType)!;
@@ -183,6 +189,7 @@ export class PreorderService {
 
   private translateStatus(status: string): string {
     const translations: Record<string, string> = {
+      CREATED: 'Creada',
       PENDING: 'Pendiente',
       CONFIRMED: 'Confirmado',
       CANCELLED: 'Cancelado',
@@ -422,6 +429,125 @@ export class PreorderService {
     };
 
     return this.pdfService.generateVoucherPdf(voucherData);
+  }
+
+  async approvePreorder(id: string) {
+    const preorder = await this.findOne(id);
+
+    if (preorder.status !== 'CREATED') {
+      throw new BadRequestException(
+        `No se puede aprobar una preorden con estado ${preorder.status}. Solo se pueden aprobar preorders con estado CREATED.`,
+      );
+    }
+
+    const updatedPreorder = await this.prisma.preorder.update({
+      where: { id },
+      data: { status: $Enums.PreorderStatus.PENDING },
+      include: {
+        client: true,
+        packages: {
+          include: {
+            packageType: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...updatedPreorder,
+      message: 'Preorden aprobada exitosamente',
+    };
+  }
+
+  async rejectPreorder(id: string) {
+    const preorder = await this.findOne(id);
+
+    if (preorder.status !== 'CREATED') {
+      throw new BadRequestException(
+        `No se puede rechazar una preorden con estado ${preorder.status}. Solo se pueden rechazar preorders con estado CREATED.`,
+      );
+    }
+
+    const updatedPreorder = await this.prisma.preorder.update({
+      where: { id },
+      data: { status: $Enums.PreorderStatus.CANCELLED },
+      include: {
+        client: true,
+        packages: {
+          include: {
+            packageType: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...updatedPreorder,
+      message: 'Preorden rechazada exitosamente',
+    };
+  }
+
+  async bulkUpdateStatus(bulkUpdateDto: BulkUpdatePreorderDto) {
+    const { ids, status } = bulkUpdateDto;
+
+    // Verificar que todas las preorders existan y no estén eliminadas
+    const preorders = await this.prisma.preorder.findMany({
+      where: {
+        id: { in: ids },
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+
+    const foundIds = preorders.map(p => p.id);
+    const notFoundIds = ids.filter(id => !foundIds.includes(id));
+
+    if (notFoundIds.length > 0) {
+      throw new NotFoundException(
+        `No se encontraron las siguientes preorders: ${notFoundIds.join(', ')}`,
+      );
+    }
+
+    // Actualizar todas las preorders
+    const result = await this.prisma.preorder.updateMany({
+      where: {
+        id: { in: ids },
+        deletedAt: null,
+      },
+      data: {
+        status: status as $Enums.PreorderStatus,
+      },
+    });
+
+    // Obtener las preorders actualizadas con sus relaciones
+    const updatedPreorders = await this.prisma.preorder.findMany({
+      where: {
+        id: { in: ids },
+        deletedAt: null,
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            fullname: true,
+            email: true,
+            phone: true,
+          },
+        },
+        packages: {
+          include: {
+            packageType: true,
+          },
+        },
+      },
+    });
+
+    return {
+      message: `Se actualizaron ${result.count} preorder(s) exitosamente`,
+      count: result.count,
+      status,
+      preorders: updatedPreorders,
+    };
   }
 }
 

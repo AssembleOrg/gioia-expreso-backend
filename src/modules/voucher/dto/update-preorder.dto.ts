@@ -4,6 +4,7 @@ import { Type } from 'class-transformer';
 import { PackageItemDto } from './package-item.dto';
 
 export enum PreorderStatus {
+  CREATED = 'CREATED',
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
   CANCELLED = 'CANCELLED',

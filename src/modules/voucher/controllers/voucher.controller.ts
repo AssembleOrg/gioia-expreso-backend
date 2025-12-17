@@ -10,6 +10,8 @@ import {
   Res,
   ParseUUIDPipe,
   HttpStatus,
+  Request,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,12 +23,15 @@ import {
 } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { Public } from '@common/decorators';
+import { Roles } from '@common/decorators/roles.decorator';
+import { Role } from '@common/enums';
 import { PreorderService, ClientService } from '../services';
 import {
   CreatePreorderDto,
   UpdatePreorderDto,
   CreateClientDto,
   UpdateClientDto,
+  BulkUpdatePreorderDto,
 } from '../dto';
 
 @ApiTags('Vouchers')
@@ -44,7 +49,7 @@ export class VoucherController {
   @ApiOperation({
     summary: 'Crear una nueva preorden',
     description:
-      'Crea una preorden con datos del cliente, origen, destino y paquetes. Genera automáticamente un PDF de voucher.',
+      'Crea una preorden con datos del cliente, origen, destino y paquetes. Los usuarios con rol USER crean preorders con estado CREATED (requieren aprobación). Los ADMIN/SUBADMIN crean con estado PENDING.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -59,7 +64,7 @@ export class VoucherController {
         destination: 'Av. San Martín 500, Córdoba',
         destinationPostal: '5000',
         price: 15000.5,
-        status: 'PENDING',
+        status: 'CREATED',
         pdfUrl: '/public/vouchers/VCH-M8X5K2-ABCD.pdf',
         createdAt: '2025-01-15T10:30:00.000Z',
       },
@@ -69,8 +74,12 @@ export class VoucherController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Datos inválidos',
   })
-  async createPreorder(@Body() createPreorderDto: CreatePreorderDto) {
-    return this.preorderService.create(createPreorderDto);
+  async createPreorder(
+    @Body() createPreorderDto: CreatePreorderDto,
+    @Request() req: any,
+  ) {
+    const userRole = req.user?.role;
+    return this.preorderService.create(createPreorderDto, userRole);
   }
 
   @Get('preorders')
@@ -84,7 +93,7 @@ export class VoucherController {
   @ApiQuery({
     name: 'status',
     required: false,
-    enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'],
+    enum: ['CREATED', 'PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'],
   })
   @ApiQuery({
     name: 'search',
@@ -347,5 +356,106 @@ export class VoucherController {
   })
   async removeClient(@Param('id', ParseUUIDPipe) id: string) {
     return this.clientService.remove(id);
+  }
+
+  // ==================== PREORDER APPROVAL ====================
+
+  @Patch('preorders/:id/approve')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
+  @ApiOperation({
+    summary: 'Aprobar una preorden',
+    description: 'Aprueba una preorden con estado CREATED, cambiándola a PENDING. Solo disponible para ADMIN y SUBADMIN.',
+  })
+  @ApiParam({ name: 'id', description: 'ID de la preorden (UUID)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Preorden aprobada exitosamente',
+    schema: {
+      example: {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        voucherNumber: 'VCH-M8X5K2-ABCD',
+        status: 'PENDING',
+        message: 'Preorden aprobada exitosamente',
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'La preorden no está en estado CREATED o ya fue procesada',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
+  async approvePreorder(@Param('id', ParseUUIDPipe) id: string) {
+    return this.preorderService.approvePreorder(id);
+  }
+
+  @Patch('preorders/:id/reject')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
+  @ApiOperation({
+    summary: 'Rechazar una preorden',
+    description: 'Rechaza una preorden con estado CREATED, cambiándola a CANCELLED. Solo disponible para ADMIN y SUBADMIN.',
+  })
+  @ApiParam({ name: 'id', description: 'ID de la preorden (UUID)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Preorden rechazada exitosamente',
+    schema: {
+      example: {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        voucherNumber: 'VCH-M8X5K2-ABCD',
+        status: 'CANCELLED',
+        message: 'Preorden rechazada exitosamente',
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'La preorden no está en estado CREATED o ya fue procesada',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Preorden no encontrada',
+  })
+  async rejectPreorder(@Param('id', ParseUUIDPipe) id: string) {
+    return this.preorderService.rejectPreorder(id);
+  }
+
+  @Patch('preorders/bulk-update-status')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
+  @ApiOperation({
+    summary: 'Actualización masiva de estado de preorders',
+    description: 'Actualiza el estado de múltiples preorders a la vez. Solo disponible para ADMIN y SUBADMIN.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Preorders actualizadas exitosamente',
+    schema: {
+      example: {
+        message: 'Se actualizaron 3 preorder(s) exitosamente',
+        count: 3,
+        status: 'PENDING',
+        preorders: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            voucherNumber: 'VCH-M8X5K2-ABCD',
+            status: 'PENDING',
+            // ... más campos
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Datos inválidos (IDs vacíos, estado inválido, etc.)',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Una o más preorders no fueron encontradas',
+  })
+  async bulkUpdateStatus(@Body() bulkUpdateDto: BulkUpdatePreorderDto) {
+    return this.preorderService.bulkUpdateStatus(bulkUpdateDto);
   }
 }
