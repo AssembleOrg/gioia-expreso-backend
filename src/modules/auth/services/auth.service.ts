@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@prisma';
 import { $Enums } from '@prisma/client';
@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly BCRYPT_ROUNDS = 12;
   private readonly EMAIL_VERIFICATION_EXPIRES_HOURS = 24;
 
@@ -28,23 +29,29 @@ export class AuthService {
     });
 
     if (!user) {
+      this.logger.warn(`Intento de login fallido: usuario no encontrado para email ${loginDto.email}`);
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
     if (user.deletedAt) {
+      this.logger.warn(`Intento de login fallido: usuario eliminado para email ${loginDto.email}`);
       throw new UnauthorizedException('Usuario eliminado');
     }
 
     // Verificar que el email esté confirmado
     if (!user.emailVerified) {
+      this.logger.warn(`Intento de login fallido: email no verificado para email ${loginDto.email}`);
       throw new UnauthorizedException('Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada o solicita un nuevo enlace de verificación.');
     }
 
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
 
     if (!isPasswordValid) {
+      this.logger.warn(`Intento de login fallido: contraseña incorrecta para email ${loginDto.email}`);
       throw new UnauthorizedException('Credenciales inválidas');
     }
+
+    this.logger.log(`Login exitoso para usuario ${user.email} (ID: ${user.id})`);
 
     const payload = {
       sub: user.id,
