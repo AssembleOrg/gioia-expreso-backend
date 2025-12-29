@@ -20,13 +20,26 @@ async function bootstrap() {
     prefix: '/public/',
   });
 
-  // Security
-  app.use(helmet());
+  // Security - Configurar Helmet para permitir CORS
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
-  // CORS
+  // CORS - Configurar para permitir el dominio del frontend
+  const frontendUrl = configService.get<string>('frontend.url', { infer: true });
+  const allowedOrigins = frontendUrl
+    ? [frontendUrl, 'https://transportegioia.com.ar', 'http://localhost:3000', 'http://localhost:5173', 'https://www.transportegioia.com.ar']
+    : true;
+
   app.enableCors({
-    origin: true,
+    origin: allowedOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Authorization'],
   });
 
   // Global prefix
@@ -95,9 +108,10 @@ async function bootstrap() {
   }
 
   const port = configService.get<number>('port') || 3000;
-  await app.listen(port);
+  // Escuchar en 0.0.0.0 para aceptar conexiones externas (necesario para Railway)
+  await app.listen(port, '0.0.0.0');
 
-  console.log(`Application is running on: http://localhost:${port}/api`);
+  console.log(`Application is running on: http://0.0.0.0:${port}/api`);
   if (swaggerEnabled || nodeEnv === 'development') {
     console.log(`Swagger documentation: http://localhost:${port}/api/docs`);
   }
