@@ -1,23 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CotizacionItemDto {
-  @ApiProperty({ example: 1 })
-  id: number;
+export class PreciosModosDto {
+  @ApiProperty({
+    description: 'Precio Sucursal a Sucursal',
+    example: 14230.43,
+  })
+  SUC_SUC: number;
 
-  @ApiProperty({ example: 'Domicilio a Domicilio' })
-  descripcion: string;
+  @ApiProperty({
+    description: 'Precio Sucursal a Domicilio',
+    example: 19376.53,
+  })
+  SUC_DOM: number;
 
-  @ApiProperty({ example: 31164.57 })
-  precio: number;
+  @ApiProperty({
+    description: 'Precio Domicilio a Sucursal',
+    example: 19376.53,
+  })
+  DOM_SUC: number;
 
-  @ApiProperty({ example: 37709.13 })
-  precio_final: number;
-
-  @ApiProperty({ example: 28364.57 })
-  flete: number;
-
-  @ApiProperty({ example: 2800 })
-  seguro: number;
+  @ApiProperty({
+    description: 'Precio Domicilio a Domicilio',
+    example: 24522.63,
+  })
+  DOM_DOM: number;
 }
 
 export class CotizacionResponseDto {
@@ -27,14 +33,13 @@ export class CotizacionResponseDto {
   @ApiProperty({
     type: 'object',
     properties: {
-      cotizacion_web: {
-        type: 'array',
-        items: { $ref: '#/components/schemas/CotizacionItemDto' },
+      precios: {
+        type: () => PreciosModosDto,
       },
     },
   })
   data: {
-    cotizacion_web: CotizacionItemDto[];
+    precios: PreciosModosDto;
   };
 }
 

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { CalculatorController } from './controllers';
-import { CalculatorService, CalculatorAuthService } from './services';
+import { CalculatorService, CalculatorAuthService, ShippingQuoteService } from './services';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { CalculatorService, CalculatorAuthService } from './services';
     ConfigModule,
   ],
   controllers: [CalculatorController],
-  providers: [CalculatorService, CalculatorAuthService],
+  providers: [CalculatorService, CalculatorAuthService, ShippingQuoteService],
   exports: [CalculatorService],
 })
 export class CalculatorModule {}

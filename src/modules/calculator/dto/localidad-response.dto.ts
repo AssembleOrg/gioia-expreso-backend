@@ -1,52 +1,56 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ProvinciaDto {
-  @ApiProperty({ example: 0 })
-  id: number;
-
-  @ApiProperty({ example: '' })
-  provincia: string;
-
-  @ApiProperty({ example: 0 })
-  codigoafip: number;
-
-  @ApiProperty({ example: '' })
-  codigo: string;
-}
-
 export class LocalidadDto {
-  @ApiProperty({ example: 437 })
+  @ApiProperty({ example: 3588 })
   id: number;
 
-  @ApiProperty({ example: '06441030015' })
-  localidad_id: string;
+  @ApiProperty({ example: 20 })
+  provincias_id: number;
 
-  @ApiProperty({ example: 'LA PLATA' })
-  localidad: string;
+  @ApiProperty({ example: '' })
+  nombre: string;
 
-  @ApiProperty({ example: 1 })
-  provincia_id: number;
-
-  @ApiProperty({ example: 'BUENOS AIRES' })
-  provincia_nombre: string;
-
-  @ApiProperty({ example: '-34.920863104693' })
-  centroide_lat: string;
-
-  @ApiProperty({ example: '-57.9540560062469' })
-  centroide_lon: string;
-
-  @ApiProperty({ example: '1900' })
+  @ApiProperty({ example: '3000' })
   cp: string;
 
-  @ApiProperty({ example: false })
-  mapa: boolean;
+  @ApiProperty({ example: '-31.645164805431' })
+  latitud: string;
+
+  @ApiProperty({ example: '-60.7093147118987' })
+  longitud: string;
+
+  @ApiProperty({ example: '0001-01-01T00:00:00Z' })
+  alta: string;
 
   @ApiProperty({ example: 0 })
-  zoom: number;
+  ualta: number;
 
-  @ApiProperty({ type: ProvinciaDto })
-  provincia: ProvinciaDto;
+  @ApiProperty({ example: null, nullable: true })
+  baja: string | null;
+
+  @ApiProperty({ example: null, nullable: true })
+  ubaja: number | null;
+
+  @ApiProperty({ example: 14 })
+  cobertura: number;
+
+  @ApiProperty({ example: 'SANTA FE' })
+  localidad_nombre: string;
+
+  @ApiProperty({ example: 'SANTA FE' })
+  provincia_nombre: string;
+
+  @ApiProperty({ example: 'SANTA FE' })
+  filial_nombre: string;
+
+  @ApiProperty({ example: 0 })
+  filiales_id: number;
+
+  @ApiProperty({ example: false })
+  redespacho: boolean;
+
+  @ApiProperty({ example: '1121' })
+  codigo: string;
 }
 
 export class LocalidadesResponseDto {

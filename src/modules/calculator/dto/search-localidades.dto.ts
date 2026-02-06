@@ -1,28 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SearchLocalidadesDto {
   @ApiProperty({
     description: 'Término de búsqueda para localidades',
-    example: 'la pl',
+    example: 'santa fe',
     required: true,
   })
   @IsString()
   q: string;
 
   @ApiProperty({
-    description: 'Indica si la localidad está atendida (1) o no (0)',
+    description: 'Nivel de cobertura de la localidad',
     example: 1,
     default: 1,
     required: false,
-    enum: [0, 1],
   })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(0)
-  @Max(1)
-  atendida?: number = 1;
+  @Min(1)
+  cobertura?: number = 1;
 }
 

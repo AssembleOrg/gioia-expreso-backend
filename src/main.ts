@@ -29,9 +29,17 @@ async function bootstrap() {
   );
 
   // CORS - Configurar para permitir el dominio del frontend
-  const frontendUrl = configService.get<string>('frontend.url', { infer: true });
+  const frontendUrl = configService.get<string>('frontend.url', {
+    infer: true,
+  });
   const allowedOrigins = frontendUrl
-    ? [frontendUrl, 'https://transportegioia.com.ar', 'http://localhost:3000', 'http://localhost:5173', 'https://www.transportegioia.com.ar']
+    ? [
+        frontendUrl,
+        'https://transportegioia.com.ar',
+        'http://localhost:3001',
+        'http://localhost:5173',
+        'https://www.transportegioia.com.ar',
+      ]
     : true;
 
   app.enableCors({
@@ -79,8 +87,10 @@ async function bootstrap() {
 
     // Production password protection
     if (nodeEnv === 'production') {
-      const swaggerPassword = configService.get('swagger.password', { infer: true });
-      
+      const swaggerPassword = configService.get('swagger.password', {
+        infer: true,
+      });
+
       // Middleware para proteger todas las rutas de Swagger
       app.use('/api/docs', (req: any, res: any, next: any) => {
         const authHeader = req.headers.authorization;
@@ -89,7 +99,10 @@ async function bootstrap() {
           return res.status(401).send('Authentication required');
         }
 
-        const credentials = Buffer.from(authHeader.split(' ')[1], 'base64').toString('utf-8');
+        const credentials = Buffer.from(
+          authHeader.split(' ')[1],
+          'base64',
+        ).toString('utf-8');
         const [username, password] = credentials.split(':');
 
         if (username !== 'admin' || password !== swaggerPassword) {
