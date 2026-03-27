@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, IsDate } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class FilterDepositReceiptDto {
     @ApiPropertyOptional({
@@ -34,6 +35,24 @@ export class FilterDepositReceiptDto {
     @IsOptional()
     @IsDate()
     endDate?: Date;
+
+    @ApiPropertyOptional({
+        description: 'Número de página (solo paginación)',
+        example: 1,
+        default: 1,
+    })
+    @IsOptional()
+    @Transform(({ value }) => parseInt(value, 10))
+    page?: number = 1;
+
+    @ApiPropertyOptional({
+        description: 'Elementos por página (solo paginación)',
+        example: 10,
+        default: 10,
+    })
+    @IsOptional()
+    @Transform(({ value }) => parseInt(value, 10))
+    limit?: number = 10;
 
 
 }
