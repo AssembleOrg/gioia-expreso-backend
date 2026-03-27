@@ -1,0 +1,1 @@
+ALTER TYPE "PreorderStatus" ADD VALUE 'CREATED';

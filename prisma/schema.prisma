@@ -180,3 +180,20 @@ model ContainerPreorder {
   @@map("container_preorders")
 }
 
+model DepositReceipt {
+  id        String    @id   @default(uuid())
+  firstName      String
+  lastName  String 
+  cuit      String?         //Validar en DTO, si no hay DNI, CUIT no puede ser null
+  dni       String?         //Validar en DTO, si no hay CUIT, DNI no puede ser null
+  email     String
+  description  String
+  timeEstimated    DateTime      //Aproximacion de cuanto tiempo lo deja
+  valueAprox       Decimal?       //Valor aproximado de lo que esta dejando
+  price        Decimal           //Precio final que se cobra por el almacenarlo en el deposito
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?
+}
+
