@@ -11,6 +11,7 @@ import { AfipModule } from '@modules/afip';
 import { TransportModule } from '@modules/transport';
 import { ContainerModule } from '@modules/container';
 import { JwtAuthGuard } from '@common/guards';
+import { DepositReceiptModule } from '@modules/deposit-receipt';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { JwtAuthGuard } from '@common/guards';
     AfipModule,
     TransportModule,
     ContainerModule,
+    DepositReceiptModule,
   ],
   controllers: [],
   providers: [
@@ -33,4 +35,4 @@ import { JwtAuthGuard } from '@common/guards';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
