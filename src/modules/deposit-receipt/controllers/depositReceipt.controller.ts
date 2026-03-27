@@ -73,27 +73,8 @@ export class DepositReceiptController {
         return this.depositReceiptService.findAll(filters);
     }
 
-    @Get(':id')
-    @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
-    @ApiOperation({
-        summary: 'Obtener recibo por ID',
-        description: 'Obtiene un recibo específico con sus contenedores.',
-    })
-    @ApiParam({ name: 'id', description: 'ID del recibo' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Recibo encontrado',
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Recibo no encontrado',
-    })
-    async findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.depositReceiptService.findOne(id);
-    }
-
     @Get('paginated')
-    @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+    @Roles(Role.ADMIN, Role.SUBADMIN)
     @ApiOperation({
         summary: 'Listar recibos con paginacion',
         description: 'Obtiene recibos paginados con filtros opcionales.',
@@ -110,6 +91,25 @@ export class DepositReceiptController {
     })
     async findAllPaginated(@Query() filters: FilterDepositReceiptDto) {
         return this.depositReceiptService.findAllPaginated(filters);
+    }
+
+    @Get(':id')
+    @Roles(Role.ADMIN, Role.SUBADMIN)
+    @ApiOperation({
+        summary: 'Obtener recibo por ID',
+        description: 'Obtiene un recibo específico.',
+    })
+    @ApiParam({ name: 'id', description: 'ID del recibo' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Recibo encontrado',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Recibo no encontrado',
+    })
+    async findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.depositReceiptService.findOne(id);
     }
 
     @Put(':id')
