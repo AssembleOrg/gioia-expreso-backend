@@ -18,6 +18,8 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private readonly patterns = ['send-email'];
   /** true mientras la app se apaga: ese cierre no es una falla. */
   private apagando = false;
+  /** Conexión en curso: dos envíos simultáneos comparten la misma. */
+  private conectando: Promise<void> | null = null;
 
   constructor(private configService: ConfigService) {
     this.queueName = this.configService.get<string>('RABBITMQ_QUEUE') || 'pistech-automation';
@@ -108,9 +110,11 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async ensureConnection(): Promise<void> {
-    if (!this.connection || !this.channel) {
-      await this.connect();
-    }
+    if (this.connection && this.channel) return;
+    this.conectando ??= this.connect().finally(() => {
+      this.conectando = null;
+    });
+    await this.conectando;
   }
 
   async disconnect(): Promise<void> {
@@ -190,8 +194,12 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       return true;
     } catch (error) {
       this.logger.error(`Error al enviar mensaje a RabbitMQ (${pattern}):`, error);
+      // Se cierra antes de soltarla: si no, el socket y su heartbeat quedan
+      // vivos y el próximo envío abre otra conexión encima.
+      const vieja = this.connection;
       this.channel = null;
       this.connection = null;
+      await vieja?.close().catch(() => undefined);
       return false;
     }
   }
