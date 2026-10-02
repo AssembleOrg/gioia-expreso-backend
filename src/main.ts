@@ -122,6 +122,9 @@ async function bootstrap() {
 
   const port = configService.get<number>('port') || 3000;
   // Escuchar en 0.0.0.0 para aceptar conexiones externas (necesario para Railway)
+  // Al redeployar, Railway manda SIGTERM: así corren los onModuleDestroy
+  // (Prisma, RabbitMQ, el Chrome de los PDFs) y nada queda colgado.
+  app.enableShutdownHooks();
   await app.listen(port, '0.0.0.0');
 
   console.log(`Application is running on: http://0.0.0.0:${port}/api`);
