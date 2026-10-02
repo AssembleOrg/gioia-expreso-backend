@@ -16,6 +16,8 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private readonly allowedOrigins: string[];
 
   private readonly patterns = ['send-email'];
+  /** true mientras la app se apaga: ese cierre no es una falla. */
+  private apagando = false;
 
   constructor(private configService: ConfigService) {
     this.queueName = this.configService.get<string>('RABBITMQ_QUEUE') || 'pistech-automation';
@@ -56,13 +58,29 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
+    this.apagando = true;
     await this.disconnect();
   }
 
   private async connect(): Promise<void> {
     try {
-      this.connection = await connect(this.rabbitmqUrl);
-      this.channel = await this.connection.createConfirmChannel();
+      const connection = await connect(this.rabbitmqUrl);
+      const channel = await connection.createConfirmChannel();
+
+      // Sin estos listeners, si RabbitMQ se reinicia o corta la conexión,
+      // amqplib emite 'error' sin nadie que lo escuche y Node mata el
+      // proceso: el backend queda caído hasta que alguien lo reinicia. Con
+      // ellos se registra, se suelta la conexión y el próximo envío
+      // reconecta solo (ensureConnection).
+      connection.on('error', (err) => this.logger.error('Conexión con RabbitMQ con error:', err));
+      connection.on('close', () => this.soltar(connection, 'conexión'));
+      channel.on('error', (err) => this.logger.error('Canal de RabbitMQ con error:', err));
+      channel.on('close', () => {
+        if (this.channel === channel) this.channel = null;
+      });
+
+      this.connection = connection;
+      this.channel = channel;
 
       await this.channel.assertExchange(this.exchangeName, 'direct', { durable: true });
       await this.channel.assertQueue(this.queueName, { durable: true });
@@ -77,6 +95,15 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       this.connection = null;
       this.channel = null;
       throw error;
+    }
+  }
+
+  private soltar(connection: ChannelModel, que: string): void {
+    if (this.connection !== connection) return;
+    this.connection = null;
+    this.channel = null;
+    if (!this.apagando) {
+      this.logger.warn(`Se cerró la ${que} con RabbitMQ; se reconecta en el próximo envío.`);
     }
   }
 
