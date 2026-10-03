@@ -44,6 +44,9 @@ export class VoucherController {
   ) {}
 
   // ==================== PREORDERS ====================
+  // Permisos: lo que no tiene @Roles ni @Public es para cualquier usuario
+  // logueado (incluye USER del registro web, que crea preórdenes desde la
+  // calculadora y baja su PDF). El resto es solo para el personal.
 
   @Post('preorders')
   @ApiOperation({
@@ -83,6 +86,7 @@ export class VoucherController {
   }
 
   @Get('preorders')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Listar preórdenes',
     description:
@@ -154,6 +158,7 @@ export class VoucherController {
   }
 
   @Put('preorders/:id')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Actualizar una preorden',
     description:
@@ -173,6 +178,7 @@ export class VoucherController {
   }
 
   @Delete('preorders/:id')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Eliminar una preorden',
     description: 'Elimina (soft delete) una preorden existente',
@@ -228,6 +234,7 @@ export class VoucherController {
   }
 
   @Post('preorders/:id/regenerate-pdf')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Regenerar PDF del voucher',
     description: 'Regenera el PDF del voucher y actualiza la URL almacenada',
@@ -287,6 +294,7 @@ export class VoucherController {
   // ==================== CLIENTS ====================
 
   @Post('clients')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Crear un nuevo cliente',
     description: 'Registra un nuevo cliente en el sistema',
@@ -298,6 +306,7 @@ export class VoucherController {
   }
 
   @Get('clients')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Listar clientes',
     description: 'Obtiene una lista paginada de clientes',
@@ -322,6 +331,7 @@ export class VoucherController {
   }
 
   @Get('clients/:id')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Obtener un cliente por ID',
     description:
@@ -338,6 +348,7 @@ export class VoucherController {
   }
 
   @Put('clients/:id')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Actualizar un cliente',
     description: 'Actualiza los datos de un cliente existente',
@@ -356,6 +367,7 @@ export class VoucherController {
   }
 
   @Delete('clients/:id')
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Eliminar un cliente',
     description: 'Elimina (soft delete) un cliente existente',
