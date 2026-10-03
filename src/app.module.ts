@@ -13,6 +13,7 @@ import { ContainerModule } from '@modules/container';
 import { JwtAuthGuard } from '@common/guards';
 import { DepositReceiptModule } from '@modules/deposit-receipt';
 import { RumboModule } from '@modules/rumbo';
+import { RecipientsModule } from '@modules/recipients';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { RumboModule } from '@modules/rumbo';
     ContainerModule,
     DepositReceiptModule,
     RumboModule,
+    RecipientsModule,
   ],
   controllers: [],
   providers: [

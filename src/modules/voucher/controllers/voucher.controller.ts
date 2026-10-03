@@ -304,9 +304,21 @@ export class VoucherController {
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description:
+      'Buscar por nombre, email, teléfono o CUIT (parcial, sin distinguir mayúsculas)',
+    example: 'perez',
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'Lista de clientes' })
-  async findAllClients(@Query('page') page = 1, @Query('limit') limit = 10) {
-    return this.clientService.findAll(+page, +limit);
+  async findAllClients(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search?: string,
+  ) {
+    return this.clientService.findAll(+page, +limit, search);
   }
 
   @Get('clients/:id')
