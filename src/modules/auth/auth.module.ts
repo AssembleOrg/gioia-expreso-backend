@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { AuthController } from './controllers';
 import { AuthService } from './services';
 import { JwtStrategy } from '@common/strategies';
-import { PrismaService } from '@prisma';
 import { EmailModule } from '@email';
 
 @Module({
@@ -15,9 +14,13 @@ import { EmailModule } from '@email';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('jwt.secret');
+        if (!secret) {
+          throw new Error('JWT_SECRET no está configurado');
+        }
         const expiresIn = configService.get<string>('jwt.expiresIn') || '1d';
         return {
-          secret: configService.get<string>('jwt.secret') || 'secret',
+          secret,
           signOptions: {
             expiresIn: expiresIn as any,
           },
@@ -26,7 +29,7 @@ import { EmailModule } from '@email';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, PrismaService],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

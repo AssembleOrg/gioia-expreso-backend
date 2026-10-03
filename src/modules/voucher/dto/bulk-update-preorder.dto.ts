@@ -1,5 +1,6 @@
+import { LIMITE_MAXIMO } from '@common/pagination';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsEnum, ArrayMinSize, IsUUID } from 'class-validator';
+import { IsArray, IsEnum, ArrayMinSize, IsUUID, ArrayMaxSize } from 'class-validator';
 import { PreorderStatus } from './update-preorder.dto';
 
 export class BulkUpdatePreorderDto {
@@ -14,6 +15,7 @@ export class BulkUpdatePreorderDto {
     minItems: 1,
   })
   @IsArray({ message: 'Los IDs deben ser un array' })
+  @ArrayMaxSize(LIMITE_MAXIMO, { message: `Máximo ${LIMITE_MAXIMO} por operación` })
   @ArrayMinSize(1, { message: 'Debe proporcionar al menos un ID' })
   @IsUUID(4, { each: true, message: 'Cada ID debe ser un UUID válido' })
   ids: string[];

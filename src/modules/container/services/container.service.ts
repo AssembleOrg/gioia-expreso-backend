@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ConflictException, BadRequestException }
 import { PrismaService } from '@prisma';
 import { CreateContainerDto, UpdateContainerDto, FilterContainerDto, AddPreordersDto } from '../dto';
 import { ContainerStatus } from '@prisma/client';
+import { LIMITE_MAXIMO, paginar } from '@common/pagination';
 
 @Injectable()
 export class ContainerService {
@@ -78,6 +79,7 @@ export class ContainerService {
     
     return this.prisma.container.findMany({
       where,
+      take: LIMITE_MAXIMO,
       orderBy: { createdAt: 'desc' },
       include: {
         transport: true,
@@ -102,9 +104,7 @@ export class ContainerService {
    */
   async findAllPaginated(filters: FilterContainerDto) {
     const where = this.buildWhereClause(filters);
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = paginar(filters.page, filters.limit);
 
     const [data, total] = await Promise.all([
       this.prisma.container.findMany({

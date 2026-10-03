@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsDate } from 'class-validator';
+import { IsString, IsOptional, IsDate, IsInt, Min, Max } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { LIMITE_MAXIMO } from '@common/pagination';
 
 export class FilterDepositReceiptDto {
     @ApiPropertyOptional({
@@ -43,6 +44,8 @@ export class FilterDepositReceiptDto {
     })
     @IsOptional()
     @Transform(({ value }) => parseInt(value, 10))
+    @IsInt({ message: 'La página debe ser un número entero' })
+    @Min(1)
     page?: number = 1;
 
     @ApiPropertyOptional({
@@ -52,6 +55,9 @@ export class FilterDepositReceiptDto {
     })
     @IsOptional()
     @Transform(({ value }) => parseInt(value, 10))
+    @IsInt({ message: 'El límite debe ser un número entero' })
+    @Min(1)
+    @Max(LIMITE_MAXIMO, { message: `El límite máximo es ${LIMITE_MAXIMO}` })
     limit?: number = 10;
 
 

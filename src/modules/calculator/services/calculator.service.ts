@@ -76,26 +76,13 @@ export class CalculatorService {
     }>;
   }): Promise<any> {
     const url = `${this.apiUrl}/public/cotizacion`;
-    
-    console.log('=== INICIO COTIZACIÓN ===');
-    console.log('URL:', url);
-    console.log('Payload enviado:', JSON.stringify(payload, null, 2));
-    
+
     try {
       const credifinResponse = await this.makeRequest('POST', url, payload);
-      console.log('Respuesta completa de Credifin:', JSON.stringify(credifinResponse, null, 2));
-      console.log('Tipo de respuesta:', typeof credifinResponse);
-      console.log('Tiene success?', 'success' in (credifinResponse || {}));
-      console.log('Tiene status?', 'status' in (credifinResponse || {}));
-      console.log('Tiene data?', 'data' in (credifinResponse || {}));
     // Verificar si la respuesta indica un error
-    console.log('Verificando success === false:', credifinResponse?.success === false);
-    console.log('Verificando status === "error":', credifinResponse?.status === 'error');
-    
     if (credifinResponse?.success === false || credifinResponse?.status === 'error') {
       const errorMessage =
         credifinResponse?.message || 'Error al obtener la cotización';
-      console.log('ERROR DETECTADO EN RESPUESTA:', errorMessage);
       this.logger.error(`Error en cotización de Credifin: ${errorMessage}`);
       throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
     }
@@ -154,30 +141,8 @@ export class CalculatorService {
       precios,
     };
 
-    console.log('Resultado final:', JSON.stringify(result, null, 2));
-    console.log('=== FIN COTIZACIÓN (ÉXITO) ===');
-
     return result;
     } catch (error: any) {
-      console.log('=== ERROR EN COTIZACIÓN ===');
-      console.log('Error completo:', error);
-      console.log('Error message:', error?.message);
-      console.log('Error status:', error?.status);
-      console.log('Error response (HttpException):', error?.response);
-      
-      // Si es un HttpException (lanzado por makeRequest), ya tiene el mensaje correcto
-      if (error instanceof HttpException) {
-        console.log('Es HttpException - el mensaje ya está formateado');
-        console.log('Mensaje final:', error.message);
-      }
-      // Si es un AxiosError (no debería llegar aquí, pero por si acaso)
-      else if (error?.response) {
-        console.log('Es AxiosError');
-        console.log('Error response data:', JSON.stringify(error.response.data, null, 2));
-        console.log('Error response status:', error.response.status);
-        console.log('Error response headers:', error.response.headers);
-      }
-      console.log('=== FIN ERROR ===');
       throw error;
     }
   }
@@ -249,7 +214,6 @@ export class CalculatorService {
           ? this.httpService.get(url, config)
           : this.httpService.post(url, body, config),
       );
-      console.log(response);
       // Para el endpoint de cotización, necesitamos la respuesta completa para verificar success
       // Para otros endpoints, extraer solo el data
       if (url.includes('/public/cotizacion')) {
@@ -287,14 +251,6 @@ export class CalculatorService {
         const statusText = axiosError.response.statusText;
         const data = axiosError.response.data as any;
 
-        console.log('=== ERROR HTTP DETECTADO ===');
-        console.log('Status:', status);
-        console.log('Status Text:', statusText);
-        console.log('Response Data completo:', JSON.stringify(data, null, 2));
-        console.log('Tipo de data:', typeof data);
-        console.log('Es objeto?', typeof data === 'object');
-        console.log('Keys en data:', data && typeof data === 'object' ? Object.keys(data) : 'N/A');
-
         this.logger.error(
           `Error ${status} en ${method} ${url}: ${JSON.stringify(data)}`,
         );
@@ -303,10 +259,8 @@ export class CalculatorService {
         let errorMessage = `Error al comunicarse con API externa: ${statusText}`;
 
         if (data && typeof data === 'object') {
-          console.log('Buscando mensaje en data...');
           // Formato: { message: "..." }
           if ('message' in data && data.message) {
-            console.log('Mensaje encontrado en data.message:', data.message);
             errorMessage = data.message;
           }
           // Formato: { status: "error", message: "..." }
@@ -315,23 +269,16 @@ export class CalculatorService {
             data.status === 'error' &&
             'message' in data
           ) {
-            console.log('Mensaje encontrado en data.message (con status error):', data.message);
             errorMessage = data.message;
           }
           // Formato: { error: "..." }
           else if ('error' in data && data.error) {
-            console.log('Mensaje encontrado en data.error:', data.error);
             errorMessage =
               typeof data.error === 'string'
                 ? data.error
                 : JSON.stringify(data.error);
-          } else {
-            console.log('No se encontró mensaje en formato conocido, usando mensaje por defecto');
           }
         }
-
-        console.log('Mensaje de error final:', errorMessage);
-        console.log('=== FIN ERROR HTTP ===');
 
         throw new HttpException(errorMessage, status);
       }
