@@ -85,6 +85,18 @@ export class VoucherController {
     return this.preorderService.create(createPreorderDto, userRole);
   }
 
+  @Get('mis-pedidos')
+  @ApiOperation({
+    summary: 'Mis pedidos',
+    description:
+      'Historial del usuario logueado: las preórdenes cuyo cliente tiene su mismo email (verificado al registrarse).',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  async findMyPreorders(@Request() req: any, @Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.preorderService.findMine(req.user.email, +page, +limit);
+  }
+
   @Get('preorders')
   @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({

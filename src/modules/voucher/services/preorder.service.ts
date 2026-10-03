@@ -199,6 +199,40 @@ export class PreorderService {
     return translations[status] || status;
   }
 
+  /**
+   * Historial de la cuenta: los pedidos cuyo cliente tiene el mismo email
+   * que el usuario. El login ya exige el email verificado, así que nadie ve
+   * pedidos ajenos registrándose con un email que no es suyo.
+   */
+  async findMine(email: string, pageParam?: number, limitParam?: number) {
+    const { page, limit, skip } = paginar(pageParam, limitParam);
+    const where = {
+      deletedAt: null,
+      client: { email: { equals: email.trim(), mode: 'insensitive' as const }, deletedAt: null },
+    };
+    const [preorders, total] = await Promise.all([
+      this.prisma.preorder.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          voucherNumber: true,
+          origin: true,
+          destination: true,
+          price: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          packages: { select: { quantity: true, weight: true, packageType: { select: { name: true } } } },
+        },
+      }),
+      this.prisma.preorder.count({ where }),
+    ]);
+    return { data: preorders, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
   async findAll(pageParam?: number, limitParam?: number, status?: string, search?: string) {
     const { page, limit, skip } = paginar(pageParam, limitParam);
 

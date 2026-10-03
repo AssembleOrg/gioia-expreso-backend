@@ -53,7 +53,7 @@ export class TransportController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Listar transportes sin paginación',
     description: 'Obtiene todos los transportes con filtros opcionales.',
@@ -70,7 +70,7 @@ export class TransportController {
   }
 
   @Get('paginated')
-  @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Listar transportes con paginación',
     description: 'Obtiene transportes paginados con filtros opcionales.',
@@ -89,7 +89,7 @@ export class TransportController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Obtener transporte por ID',
     description: 'Obtiene un transporte específico con sus contenedores.',
