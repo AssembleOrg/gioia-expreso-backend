@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '@prisma';
 import { CreateClientDto, UpdateClientDto } from '../dto';
+import { paginar } from '@common/pagination';
 
 @Injectable()
 export class ClientService {
@@ -20,8 +21,8 @@ export class ClientService {
     });
   }
 
-  async findAll(page = 1, limit = 10) {
-    const skip = (page - 1) * limit;
+  async findAll(pageParam?: number, limitParam?: number) {
+    const { page, limit, skip } = paginar(pageParam, limitParam);
 
     const [clients, total] = await Promise.all([
       this.prisma.client.findMany({

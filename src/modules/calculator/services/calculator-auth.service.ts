@@ -53,8 +53,6 @@ export class CalculatorAuthService {
         }),
       );
 
-      this.logger.debug(`Respuesta de autenticación: ${JSON.stringify(response.data)}`);
-
       // Intentar obtener el token de diferentes posibles campos
       const token = 
         response.data?.token || 
@@ -64,7 +62,7 @@ export class CalculatorAuthService {
         (typeof response.data === 'string' ? response.data : null);
 
       if (!token || typeof token !== 'string') {
-        this.logger.error(`No se recibió token válido en la respuesta. Respuesta completa: ${JSON.stringify(response.data)}`);
+        this.logger.error('No se recibió token válido en la respuesta de autenticación');
         throw new HttpException('Error al obtener token de autenticación', HttpStatus.INTERNAL_SERVER_ERROR);
       }
 
@@ -75,7 +73,7 @@ export class CalculatorAuthService {
         expiresAt,
       };
 
-      this.logger.log(`Token obtenido exitosamente (${token.substring(0, 20)}...), expira en ${new Date(expiresAt).toISOString()}`);
+      this.logger.log(`Token obtenido, expira en ${new Date(expiresAt).toISOString()}`);
       return token;
     } catch (error: any) {
       this.logger.error(`Error al obtener token: ${error.message}`, error.stack);

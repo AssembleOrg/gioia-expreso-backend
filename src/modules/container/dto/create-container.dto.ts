@@ -1,5 +1,6 @@
+import { LIMITE_MAXIMO } from '@common/pagination';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsUUID, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsUUID, IsArray, ArrayMaxSize } from 'class-validator';
 
 export enum ContainerStatusEnum {
   ON_LOAD = 'ON_LOAD',
@@ -66,6 +67,7 @@ export class CreateContainerDto {
     example: ['550e8400-e29b-41d4-a716-446655440000'],
   })
   @IsOptional()
+  @ArrayMaxSize(LIMITE_MAXIMO, { message: `Máximo ${LIMITE_MAXIMO} por operación` })
   @IsArray({ message: 'Los IDs de preórdenes deben ser un array' })
   @IsUUID('4', { each: true, message: 'Cada ID de preorden debe ser un UUID válido' })
   preorderIds?: string[];

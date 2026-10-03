@@ -1,5 +1,6 @@
+import { LIMITE_MAXIMO } from '@common/pagination';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsUUID, ArrayNotEmpty } from 'class-validator';
+import { IsArray, IsUUID, ArrayNotEmpty, ArrayMaxSize } from 'class-validator';
 
 export class AddPreordersDto {
   @ApiProperty({
@@ -8,6 +9,7 @@ export class AddPreordersDto {
     example: ['550e8400-e29b-41d4-a716-446655440000'],
   })
   @IsArray({ message: 'Los IDs de preórdenes deben ser un array' })
+  @ArrayMaxSize(LIMITE_MAXIMO, { message: `Máximo ${LIMITE_MAXIMO} por operación` })
   @ArrayNotEmpty({ message: 'Debe proporcionar al menos una preorden' })
   @IsUUID('4', { each: true, message: 'Cada ID de preorden debe ser un UUID válido' })
   preorderIds: string[];

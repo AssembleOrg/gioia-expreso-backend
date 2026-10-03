@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@prisma';
 import { CreateDepositReceiptDto, UpdateDepositReceiptDto, FilterDepositReceiptDto } from '../dto';
+import { LIMITE_MAXIMO, paginar } from '@common/pagination';
 
 @Injectable()
 export class DepositReceiptService {
@@ -43,6 +44,7 @@ export class DepositReceiptService {
 
         const depositReceipts = await this.prisma.depositReceipt.findMany({
             where,
+            take: LIMITE_MAXIMO,
             orderBy: { createdAt: 'desc' },
         })
 
@@ -51,9 +53,7 @@ export class DepositReceiptService {
 
     async findAllPaginated(filters: FilterDepositReceiptDto) {
         const where = this.buildWhereClause(filters)
-        const page = filters.page || 1
-        const limit = filters.limit || 10
-        const skip = (page - 1) * limit
+        const { page, limit, skip } = paginar(filters.page, filters.limit);
 
         const [data, total] = await Promise.all([
             this.prisma.depositReceipt.findMany({
