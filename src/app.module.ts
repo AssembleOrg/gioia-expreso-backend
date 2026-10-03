@@ -10,7 +10,7 @@ import { QrModule } from '@modules/qr';
 import { AfipModule } from '@modules/afip';
 import { TransportModule } from '@modules/transport';
 import { ContainerModule } from '@modules/container';
-import { JwtAuthGuard } from '@common/guards';
+import { JwtAuthGuard, RolesGuard } from '@common/guards';
 import { DepositReceiptModule } from '@modules/deposit-receipt';
 import { RumboModule } from '@modules/rumbo';
 
@@ -30,10 +30,16 @@ import { RumboModule } from '@modules/rumbo';
     RumboModule,
   ],
   controllers: [],
+  // El orden importa: primero se autentica (JwtAuthGuard carga req.user)
+  // y después se chequean los @Roles (RolesGuard).
   providers: [
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })
