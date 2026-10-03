@@ -54,8 +54,33 @@ model Client {
   updatedAt        DateTime   @updatedAt
   deletedAt        DateTime?
   preorders        Preorder[]
+  recipients       Recipient[]
 
   @@map("clients")
+}
+
+// Agenda de destinatarios: gente que RECIBE envíos, para no tipearla de nuevo
+model Recipient {
+  id         String    @id @default(uuid())
+  fullname   String
+  dni        String?
+  phone      String?
+  email      String?
+  address    String
+  city       String?
+  province   String?
+  postalCode String?
+  notes      String?
+  // Remitente que suele mandarle (opcional)
+  clientId   String?
+  client     Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@index([fullname])
+  @@index([dni])
+  @@map("recipients")
 }
 
 enum PackageTypeEnum {

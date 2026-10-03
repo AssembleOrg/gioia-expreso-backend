@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma';
 import { CreateClientDto, UpdateClientDto } from '../dto';
 import { paginar } from '@common/pagination';
@@ -21,12 +22,25 @@ export class ClientService {
     });
   }
 
-  async findAll(pageParam?: number, limitParam?: number) {
+  async findAll(pageParam?: number, limitParam?: number, search?: string) {
     const { page, limit, skip } = paginar(pageParam, limitParam);
+
+    const where: Prisma.ClientWhereInput = { deletedAt: null };
+    const termino = typeof search === 'string' ? search.trim() : '';
+    if (termino) {
+      // Para el buscador de remitentes: nombre, email, teléfono o CUIT
+      const contiene = { contains: termino, mode: 'insensitive' as const };
+      where.OR = [
+        { fullname: contiene },
+        { email: contiene },
+        { phone: contiene },
+        { cuit: contiene },
+      ];
+    }
 
     const [clients, total] = await Promise.all([
       this.prisma.client.findMany({
-        where: { deletedAt: null },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -36,7 +50,7 @@ export class ClientService {
           },
         },
       }),
-      this.prisma.client.count({ where: { deletedAt: null } }),
+      this.prisma.client.count({ where }),
     ]);
 
     return {
