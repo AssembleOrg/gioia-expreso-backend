@@ -197,3 +197,23 @@ model DepositReceipt {
   deletedAt   DateTime?
 }
 
+
+// ==================== SEGUIMIENTO (RUMBO) ====================
+
+// Cambios pendientes de llevar a Rumbo. La llenan disparadores de Postgres
+// (migración 20261003120000_rumbo_outbox) y la vacía el módulo rumbo: así el
+// seguimiento se entera de todo sin tocar los servicios existentes.
+model RumboOutbox {
+  id            BigInt    @id @default(autoincrement())
+  preorderId    String?
+  containerId   String?
+  reason        String
+  attempts      Int       @default(0)
+  lastError     String?
+  nextAttemptAt DateTime  @default(now())
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([processedAt, nextAttemptAt])
+  @@map("rumbo_outbox")
+}
