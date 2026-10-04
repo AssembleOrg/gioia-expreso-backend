@@ -56,7 +56,7 @@ export class DepositReceiptController {
     }
 
     @Get()
-    @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+    @Roles(Role.ADMIN, Role.SUBADMIN)
     @ApiOperation({
         summary: 'Listar recibos sin paginacion',
         description: 'Obtiene todos los recibos con filtros opcionales.',

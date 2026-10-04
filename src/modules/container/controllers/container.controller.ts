@@ -60,7 +60,7 @@ export class ContainerController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Listar contenedores sin paginación',
     description: 'Obtiene todos los contenedores con filtros opcionales.',
@@ -79,7 +79,7 @@ export class ContainerController {
   }
 
   @Get('paginated')
-  @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Listar contenedores con paginación',
     description: 'Obtiene contenedores paginados con filtros opcionales.',
@@ -100,7 +100,7 @@ export class ContainerController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.SUBADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUBADMIN)
   @ApiOperation({
     summary: 'Obtener contenedor por ID',
     description: 'Obtiene un contenedor específico con sus preórdenes.',
