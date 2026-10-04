@@ -12,6 +12,7 @@ import {
   HttpStatus,
   Request,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,6 +24,8 @@ import {
 } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { Public } from '@common/decorators';
+import { OptionalJwtAuthGuard } from '@common/guards';
+import { esPersonal, preordenPublica } from '../services/preorder-publica';
 import { Roles } from '@common/decorators/roles.decorator';
 import { Role } from '@common/enums';
 import { PreorderService, ClientService } from '../services';
@@ -136,7 +139,7 @@ export class VoucherController {
   @ApiOperation({
     summary: 'Obtener una preorden por ID',
     description:
-      'Obtiene los detalles completos de una preorden incluyendo cliente y paquetes. Este endpoint es público para permitir el tracking de envíos.',
+      'Público para el seguimiento: sin sesión de personal, del cliente sólo nombre y ciudad y sin notas. ADMIN/SUBADMIN con sesión ven el detalle completo.',
   })
   @ApiParam({ name: 'id', description: 'ID de la preorden (UUID)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Preorden encontrada' })
@@ -144,8 +147,10 @@ export class VoucherController {
     status: HttpStatus.NOT_FOUND,
     description: 'Preorden no encontrada',
   })
-  async findOnePreorder(@Param('id', ParseUUIDPipe) id: string) {
-    return this.preorderService.findOne(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  async findOnePreorder(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
+    const p = await this.preorderService.findOne(id);
+    return esPersonal(req.user) ? p : preordenPublica(p);
   }
 
   @Public()
@@ -153,7 +158,7 @@ export class VoucherController {
   @ApiOperation({
     summary: 'Buscar preorden por número de voucher',
     description:
-      'Obtiene una preorden usando su número de voucher único. Este endpoint es público para permitir el tracking de envíos.',
+      'Público para el seguimiento: sin sesión de personal, del cliente sólo nombre y ciudad y sin notas. ADMIN/SUBADMIN con sesión ven el detalle completo.',
   })
   @ApiParam({
     name: 'voucherNumber',
@@ -165,8 +170,10 @@ export class VoucherController {
     status: HttpStatus.NOT_FOUND,
     description: 'Preorden no encontrada',
   })
-  async findByVoucherNumber(@Param('voucherNumber') voucherNumber: string) {
-    return this.preorderService.findByVoucherNumber(voucherNumber);
+  @UseGuards(OptionalJwtAuthGuard)
+  async findByVoucherNumber(@Param('voucherNumber') voucherNumber: string, @Request() req: any) {
+    const p = await this.preorderService.findByVoucherNumber(voucherNumber);
+    return esPersonal(req.user) ? p : preordenPublica(p);
   }
 
   @Put('preorders/:id')
