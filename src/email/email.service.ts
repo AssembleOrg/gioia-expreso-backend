@@ -1,21 +1,36 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RabbitMQService } from '@rabbitmq';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+
+const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
+
+interface EmailData {
+  to: { email: string; name?: string }[];
+  subject: string;
+  htmlContent: string;
+  textContent: string;
+}
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private readonly frontendUrl: string;
   private readonly logoBase64: string;
+  private readonly brevoApiKey: string;
+  private readonly sender: { email: string; name: string };
 
-  constructor(
-    private rabbitMQService: RabbitMQService,
-    private configService: ConfigService,
-  ) {
+  constructor(private configService: ConfigService) {
     this.frontendUrl = this.configService.get<string>('frontend.url') || process.env.FRONTEND_URL || 'http://localhost:3000';
     this.logoBase64 = this.loadLogo();
+    this.brevoApiKey = this.configService.get<string>('brevo.apiKey') || '';
+    this.sender = {
+      email: this.configService.get<string>('brevo.senderEmail') || '',
+      name: this.configService.get<string>('brevo.senderName') || 'Transporte Gioia',
+    };
+    if (!this.brevoApiKey || !this.sender.email) {
+      this.logger.warn('BREVO_API_KEY o BREVO_SENDER_EMAIL sin configurar: los emails no se van a enviar.');
+    }
   }
 
   private loadLogo(): string {
@@ -37,14 +52,44 @@ export class EmailService {
     const htmlContent = this.getEmailVerificationHTML(fullname, verificationUrl);
     const textContent = this.getEmailVerificationText(fullname, verificationUrl);
 
-    const emailData = {
+    const emailData: EmailData = {
       to: [{ email }],
       subject: 'Confirma tu correo electrónico - Transporte Gioia',
       htmlContent,
       textContent,
     };
 
-    return this.rabbitMQService.sendMessage('send-email', emailData);
+    return this.enviar(emailData);
+  }
+
+  /**
+   * Manda el email por la API transaccional de Brevo. Antes se publicaba en
+   * RabbitMQ para que lo enviara pistech-automation, pero ese consumidor dejó
+   * de correr y los emails quedaban encolados sin salir.
+   */
+  private async enviar(emailData: EmailData): Promise<boolean> {
+    if (!this.brevoApiKey || !this.sender.email) return false;
+    try {
+      const res = await fetch(BREVO_URL, {
+        method: 'POST',
+        headers: {
+          'api-key': this.brevoApiKey,
+          'content-type': 'application/json',
+          accept: 'application/json',
+        },
+        body: JSON.stringify({ sender: this.sender, ...emailData }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!res.ok) {
+        const detalle = (await res.text()).slice(0, 300);
+        this.logger.error(`Brevo rechazó el email (${res.status}): ${detalle}`);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      this.logger.error('No se pudo enviar el email por Brevo:', error);
+      return false;
+    }
   }
 
   private getEmailVerificationHTML(fullname: string, verificationUrl: string): string {

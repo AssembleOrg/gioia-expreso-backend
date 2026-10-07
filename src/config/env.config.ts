@@ -21,6 +21,11 @@ export interface EnvConfig {
   frontend: {
     url: string;
   };
+  brevo: {
+    apiKey: string;
+    senderEmail: string;
+    senderName: string;
+  };
   calculator: {
     authUrl: string;
     apiUrl: string;
@@ -54,6 +59,11 @@ export default (): EnvConfig => ({
   },
   frontend: {
     url: process.env.FRONTEND_URL || 'http://localhost:3000',
+  },
+  brevo: {
+    apiKey: process.env.BREVO_API_KEY || '',
+    senderEmail: process.env.BREVO_SENDER_EMAIL || '',
+    senderName: process.env.BREVO_SENDER_NAME || 'Transporte Gioia',
   },
   calculator: {
     authUrl: process.env.CALCULATOR_AUTH_URL || 'https://auth.credifin.com.ar/v1/token',
